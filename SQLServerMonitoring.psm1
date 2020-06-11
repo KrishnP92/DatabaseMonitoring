@@ -1,5 +1,5 @@
 
-Function Get-EmailHeader
+Function Get-SQLMonitoringEmailHeader
 {
 $Header = @"
 <style>
@@ -29,13 +29,13 @@ return $Header
  
  .Example
    # Return Monitoring Server and Database names
-   $MonitoringDetails  = Get-MonitoringServer
+   $MonitoringDetails  = Get-SQLMonitoringServer
    $MonitoringServer   = $MonitoringDetails.ServerInstance   
    $MonitoringDatabase = $MonitoringDetails.MonitoringDatabase
    $StagingDatabase    = $MonitoringDetails.StagingDatabase
 #>
 
-FUNCTION Get-MonitoringServer
+FUNCTION Get-SQLMonitoringServer
     {
 
         [hashtable]$return = @{}
@@ -50,7 +50,7 @@ FUNCTION Get-MonitoringServer
   This function will return all corresponding SQL Server Instances based on the passed parameters
 
  .Description
-  Get-SQLServerList returns an object for all corresponding SQL Server instances.
+  Get-SQLMonitoringServerList returns an object for all corresponding SQL Server instances.
 
  .Parameter InstanceRole
   Instance role helps to return instances based on their use cases e.g. DEV,TEST,PROD
@@ -60,12 +60,12 @@ FUNCTION Get-MonitoringServer
 
  .Example
    # Show a default display of this month.
-   $SQLServerList = Get-SQLServerList -InstanceRole 'PROD' -InstanceType 'BUSINESS CRITICAL'
+   $SQLServerList = Get-SQLMonitoringServerList -InstanceRole 'PROD' -InstanceType 'BUSINESS CRITICAL'
    $SQLServerList.ComputerName 
    $SQLServerList.InstanceName
    $SQLServerList.SqlInstance
 #>
-FUNCTION Get-SQLServerList
+FUNCTION Get-SQLMonitoringServerList
     {
         PARAM
             (
@@ -73,7 +73,7 @@ FUNCTION Get-SQLServerList
                 ,[Parameter(Mandatory=$True)] [ValidateSet('BUSINESS CRITICAL','NOT BUSINESS CRITICAL','ALL')] [STRING]  $InstanceType
             )
            
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName = $MonitoringServerDetails.MonitoringDatabase
         if ($InstanceType -eq "ALL" -and $InstanceRole -eq "ALL")
@@ -177,7 +177,7 @@ FUNCTION Write-SQLMonitoringLoggingTable
                 ,[Parameter(Mandatory=$TRUE)]  [BOOLEAN]   $InitialLog
                 
             )      
-        $MonitoringServerOutput = Get-MonitoringServer
+        $MonitoringServerOutput = Get-SQLMonitoringServer
         $TargetServerInstance  = $MonitoringServerOutput.ServerInstance        
         $MonitoringDatabase    = $MonitoringServerOutput.MonitoringDatabase
         $TargetDatabase        = $MonitoringServerOutput.StagingDatabase
@@ -224,9 +224,9 @@ FUNCTION Write-SQLMonitoringLoggingTable
         REMOVE-VARIABLE MonitoringDatabase                   
     }
 
-    FUNCTION Get-MailServer
+    FUNCTION Get-SQLMonitoringMailServer
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.MonitoringDatabase
         return Invoke-DbaQuery -SqlInstance $MonitoringInstanceName -Database $MonitoringDatabaseName -Query "SELECT MonitoringValue MailServer FROM SQLServer.MonitoringInformation WHERE MonitoringAttribute = 'Mail Server'"
@@ -237,7 +237,7 @@ FUNCTION Write-SQLMonitoringLoggingTable
 
     }
 
-function Ignore-SSLCertificates
+function Disable-SQLMonitoringSSLCertificates
 {
     $Provider = New-Object Microsoft.CSharp.CSharpCodeProvider
     $Compiler = $Provider.CreateCompiler()
@@ -273,7 +273,7 @@ function Ignore-SSLCertificates
     REMOVE-VARIABLE TrustAll
 }
 
-function Email-SQLOutput
+function Send-SQLMonitoringSQLOutput
     {
         PARAM
             (
@@ -303,7 +303,7 @@ FUNCTION Get-SQLMonitoringAlertDetails
         (     
              [STRING]$AlertDetailsAlertName
         )
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.MonitoringDatabase
         $Query = 
@@ -330,14 +330,14 @@ FUNCTION Get-SQLMonitoringAlertDetails
         REMOVE-VARIABLE Query 
     }
 
-    FUNCTION Write-SQLMonitoringBackupHistory #Insert-BackupHistory
+    FUNCTION Write-SQLMonitoringBackupHistory
     {
         PARAM
             (
                  [STRING] $SQLInstance     
                  ,[INT]   $DaysAway     = -1
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -375,7 +375,7 @@ FUNCTION Write-SQLMonitoringDatabaseFileInformation
             (
                  [STRING] $SQLInstance      
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.MonitoringDatabase
             $TargetSchema            = "Staging"
@@ -412,7 +412,7 @@ FUNCTION Write-SQLMonitoringDatabaseFileInformation
             (
                  [STRING] $SQLInstance      
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.MonitoringDatabase
             $TargetSchema            = "Staging"
@@ -447,7 +447,7 @@ FUNCTION Write-SQLMonitoringDatabaseFileInformation
             (
                  [STRING] $ComputerName        
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -486,7 +486,7 @@ FUNCTION Write-SQLMonitoringSQLServerList
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -525,7 +525,7 @@ FUNCTION Write-SQLMonitoringStartupServices
             (
                  [STRING] $ComputerName        
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -561,7 +561,7 @@ FUNCTION Write-SQLMonitoringAgentJobs
                  [STRING]  $SQLInstance
                  ,[STRING] $JobName
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -608,7 +608,7 @@ FUNCTION Write-SQLMonitoringAgentJobSteps
                   [STRING] $SQLInstance     
                  ,[STRING] $JobName
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -654,7 +654,7 @@ FUNCTION Write-SQLMonitoringAgentJobHistory
                  [STRING] $SQLInstance     
                  ,[INT]   $HoursAway    = -3
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -691,7 +691,7 @@ FUNCTION Write-SQLMonitoringErrorLog
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -740,7 +740,7 @@ FUNCTION Write-SQLMonitoringDBTableInformation
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1085,7 +1085,7 @@ FUNCTION Write-SQLMonitoringIndexInformation
                  ,[SWITCH] $GetIndexInformation
             )
             
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1565,7 +1565,7 @@ FUNCTION Write-SQLMonitoringDatabaseInformation
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1602,7 +1602,7 @@ FUNCTION Write-SQLMonitoringNetworkLatency
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1636,7 +1636,7 @@ FUNCTION Write-SQLMonitoringReplicationLatency
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1671,7 +1671,7 @@ FUNCTION Write-SQLMonitoringConfigurationOptions
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1706,7 +1706,7 @@ FUNCTION Write-SQLMonitoringComputerList
             (
                  [STRING] $ComputerName     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1747,7 +1747,7 @@ FUNCTION Write-SQLMonitoringQueryStats
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1914,7 +1914,7 @@ FUNCTION Write-SQLMonitoringQueryStats
     };
 FUNCTION Write-SQLMonitoringExecutingQueries
     {
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -1922,7 +1922,7 @@ FUNCTION Write-SQLMonitoringExecutingQueries
             $StartDateTime           = (get-date)
             $TaskName                = "$SQLInstance - $TargetTable"
             $ParentTask              = "$TargetTable"
-            $List                    = Get-SQLServerList -InstanceRole PROD -InstanceType 'ALL' | Select-Object SQLInstance
+            $List                    = Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType 'ALL' | Select-Object SQLInstance
             $LoggingGUID             = New-Guid
             $SQLQuery                = 
             "
@@ -2012,7 +2012,7 @@ FUNCTION Write-SQLMonitoringWaitStatistics
                  [STRING] $SQLInstance     
             )
 
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -2039,7 +2039,7 @@ FUNCTION Write-SQLMonitoringWaitStatistics
             REMOVE-VARIABLE LoggingGUID            
     }
 
-function write-SQLServerMonitoringPRTGData
+function write-SQLMonitoringPRTGData
     {
         PARAM
         (
@@ -2047,7 +2047,7 @@ function write-SQLServerMonitoringPRTGData
             ,[ARRAY]  $SensorList 
             ,[SWITCH] $HistoricData
         )
-        $MonitoringServerDetails  = Get-MonitoringServer
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $TargetDatabase           = $MonitoringServerDetails.StagingDatabase     
 
@@ -2136,9 +2136,9 @@ function write-SQLServerMonitoringPRTGData
         REMOVE-VARIABLE SensorList              
     }
 
-FUNCTION Write-SQLServerMonitoringHistoricSensorData 
+FUNCTION Write-SQLMonitoringHistoricSensorData 
     {
-        $MonitoringServerDetails  = Get-MonitoringServer
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $TargetDatabase           = $MonitoringServerDetails.StagingDatabase 
         $MonitoringServerDatabase = $MonitoringServerDetails.MonitoringDatabase 
@@ -2160,12 +2160,12 @@ FUNCTION Write-SQLServerMonitoringHistoricSensorData
             }
         $URL = "https://monitor-02/api/historicdata.json?id=$SensorValue&avg=0&sdate=$StartDt&edate=$EndDt&usecaption=1&username=patelk1&passhash=183815319"
         
-        write-SQLServerMonitoringPRTGData -URL $URL -SensorList $SensorsToUse -HistoricData 
+        write-SQLMonitoringPRTGData -URL $URL -SensorList $SensorsToUse -HistoricData 
         
         $SensorsToUse = $Sensors |Where-Object {$_.isDiskSpaceSensor -eq $True} |Select-Object SensorID
         $URL = "https://monitor-02/api/historicdata.json?id=$SensorValue&avg=1800&sdate=$StartDt&edate=$EndDt&usecaption=1&username=patelk1&passhash=183815319"
         
-        write-SQLServerMonitoringPRTGData -URL $URL -SensorList $SensorsToUse -HistoricData
+        write-SQLMonitoringPRTGData -URL $URL -SensorList $SensorsToUse -HistoricData
         Invoke-DbaQuery -SqlInstance $TargetServerInstance -Database $TargetDatabase -Query "EXEC HistoricData.usp_HistoricData_StagingHistoricLoads_Insert;"
         Remove-Variable MonitoringServerDetails   
         Remove-Variable TargetServerInstance      
@@ -2179,10 +2179,10 @@ FUNCTION Write-SQLServerMonitoringHistoricSensorData
         Remove-Variable URL
     }
 
-FUNCTION Write-SQLServerMonitoringPRTGLiveData
+FUNCTION Write-SQLMonitoringPRTGLiveData
     {
         
-        $MonitoringServerDetails  = Get-MonitoringServer
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $TargetDatabase           = $MonitoringServerDetails.StagingDatabase 
         $MonitoringServerDatabase = $MonitoringServerDetails.MonitoringDatabase 
@@ -2194,12 +2194,12 @@ FUNCTION Write-SQLServerMonitoringPRTGLiveData
         if ((((get-date).minute -eq 0) -OR ((get-date).minute -eq 30)) -and ((get-date).second -le 20))
             {
                 $SensorsToUse = $Sensors |Where-Object {$_.isDiskSpaceSensor -eq $True} |Select-Object SensorID
-                write-SQLServerMonitoringPRTGData -URL $URL -SensorList $SensorsToUse    
+                write-SQLMonitoringPRTGData -URL $URL -SensorList $SensorsToUse    
             }
         
         $SensorsToUse = $Sensors |Where-Object {$_.isDiskSpaceSensor -eq $false} |Select-Object SensorID
         
-        write-SQLServerMonitoringPRTGData -URL $URL -SensorList $SensorsToUse    
+        write-SQLMonitoringPRTGData -URL $URL -SensorList $SensorsToUse    
 
         Remove-Variable MonitoringServerDetails 
         Remove-Variable TargetServerInstance    
@@ -2213,7 +2213,7 @@ FUNCTION Write-SQLServerMonitoringPRTGLiveData
     }
 FUNCTION Write-SQLMonitoringWaitTypes
     {
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase 
             $TargetSchema            = "Staging"
@@ -2222,7 +2222,7 @@ FUNCTION Write-SQLMonitoringWaitTypes
             $TaskName                = "$SQLInstance - $TargetTable"
             $ParentTask              = "$TargetTable"
             $LoggingGUID             = New-Guid
-            $SQLList                 = Get-SQLServerList -InstanceRole 'Prod' -InstanceType 'ALL' | Select-Object SQLInstance  
+            $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'Prod' -InstanceType 'ALL' | Select-Object SQLInstance  
 
 
             Get-dbawaitstatistic -SqlInstance $SQLList.SQLInstance -IncludeIgnorable -Threshold 100  | Select-Object ComputerName,InstanceName,@{Name ="SQLInstance" ; Expression={$_.SQLInstance}},WaitType,Category,isIgnorable |Write-DbaDataTable -SqlInstance $TargetServerInstance -Database $TargetDatabase -Schema $TargetSchema -Table $TargetTable # -FireTriggers
@@ -2240,7 +2240,7 @@ FUNCTION Write-SQLMonitoringWaitTypes
     }
 FUNCTION Write-SQLMonitoringBlockingTasks
     {
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase 
             $TargetSchema            = "Staging"
@@ -2248,7 +2248,7 @@ FUNCTION Write-SQLMonitoringBlockingTasks
             $StartDateTime           = (get-date)
             $TaskName                = "$SQLInstance - $TargetTable"
             $ParentTask              = "$TargetTable"
-            $List                    = Get-SQLServerList -InstanceRole PROD -InstanceType 'ALL' | Where-Object {$_.SQLInstance -ne "EICC-DBS" -and $_.SQLInstance -ne "EICC-REP"} | Select-Object SQLInstance
+            $List                    = Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType 'ALL' | Where-Object {$_.SQLInstance -ne "EICC-DBS" -and $_.SQLInstance -ne "EICC-REP"} | Select-Object SQLInstance
             $LoggingGUID             = New-Guid
             $SQLQuery                = 
             "
@@ -2440,7 +2440,7 @@ FUNCTION Write-SQLMonitoringStatisticsInformation
                   [STRING] $SQLInstance   
             )
             
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -2716,7 +2716,7 @@ FUNCTION  Write-SQLMonitoringCaptureDeadlocks
             (
                  [STRING] $SQLInstance     
             )
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -2978,10 +2978,10 @@ FUNCTION  Write-SQLMonitoringCaptureDeadlocks
             REMOVE-VARIABLE Out
             REMOVE-VARIABLE LoggingGUID
     } 
-function write-SQLServerMonitoringStorageSpace
+function write-SQLMonitoringStorageSpace
     {
-        Ignore-SSLCertificates
-        $MonitoringServerDetails  = Get-MonitoringServer
+        Disable-SQLMonitoringSSLCertificates
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $TargetDatabase           = $MonitoringServerDetails.StagingDatabase
         $MonitoringServerDatabase = $MonitoringServerDetails.MonitoringDatabase
@@ -3017,7 +3017,7 @@ function write-SQLServerMonitoringStorageSpace
             
         
             Write-SQLMonitoringLoggingTable   -TaskName $TaskName -ParentTask $ParentTask -ComputerName "MONITOR-03" -SqlInstance $SqlInstance -Database $Database -StartDateTime $StartDateTime -EndDateTime (get-date) -LoggingGUID $LoggingGUID -InitialLog 0
-        write-SQLServerMonitoringPRTGData -URL $URL -SensorList $SensorsToUse    
+        write-SQLMonitoringPRTGData -URL $URL -SensorList $SensorsToUse    
 
         Remove-Variable FinalOutput
         Remove-Variable MonitoringServerDetails 
@@ -3034,7 +3034,7 @@ function write-SQLServerMonitoringStorageSpace
         Remove-Variable StartDateTime                
 
     }
-function write-SQLServerMonitoringSQLErrorLog
+function write-SQLMonitoringSQLErrorLog
     {
         if ((get-date).DayOfWeek -eq "Monday")
             {
@@ -3044,8 +3044,8 @@ function write-SQLServerMonitoringSQLErrorLog
             {
                 $DaysAway = -1
             }
-        $SQLInstances             = (Get-SQLServerList -InstanceRole PROD -InstanceType ALL | Where-object {$_.SQLInstance -ne "DBS-01"}| Select-Object SQLInstance).SQLInstance
-        $MonitoringServerDetails  = Get-MonitoringServer
+        $SQLInstances             = (Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType ALL | Where-object {$_.SQLInstance -ne "DBS-01"}| Select-Object SQLInstance).SQLInstance
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $MonitoringServerDatabase = $MonitoringServerDetails.MonitoringDatabase
         $ParentTask               = "SQL Error Logs"
@@ -3078,7 +3078,7 @@ function write-SQLServerMonitoringSQLErrorLog
         Remove-Variable SQLInstances
         Remove-Variable Out                   
     }
-function write-SQLServerMonitoringWindowsLog
+function write-SQLMonitoringWindowsLog
     {
         clear-host
         if ((get-date).DayOfWeek -eq "Monday")
@@ -3089,9 +3089,9 @@ function write-SQLServerMonitoringWindowsLog
             {
                 $DaysAway = -1
             }
-        $ComputerNames            = (Get-SQLServerList -InstanceRole PROD -InstanceType ALL | Select-Object ComputerName).ComputerName
+        $ComputerNames            = (Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType ALL | Select-Object ComputerName).ComputerName
         $WindowsLogs              = @("Application","System","Security")
-        $MonitoringServerDetails  = Get-MonitoringServer
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $MonitoringServerDatabase = $MonitoringServerDetails.MonitoringDatabase
         $ParentTask               = "Windows Logs"
@@ -3134,7 +3134,7 @@ function write-SQLServerMonitoringWindowsLog
 FUNCTION Write-SQLMonitoringBufferPoolUsage
     {
 
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.MonitoringDatabase
             $TargetSchema            = "Staging"
@@ -3142,7 +3142,7 @@ FUNCTION Write-SQLMonitoringBufferPoolUsage
             $StartDateTime           = (get-date)
             $TaskName                = "$SQLInstance - $TargetTable"
             $ParentTask              = "$TargetTable"
-            $List                    = Get-SQLServerList -InstanceRole PROD -InstanceType 'ALL' | Select-Object SQLInstance | Where-Object {$_.SQLInstance -ne "TIO-DBS-01"}
+            $List                    = Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType 'ALL' | Select-Object SQLInstance | Where-Object {$_.SQLInstance -ne "TIO-DBS-01"}
             $LoggingGUID             = New-Guid
             $SQLQuery                = 
             "
@@ -3313,7 +3313,7 @@ FUNCTION Write-SQLMonitoringBufferPoolUsage
 
 FUNCTION Write-SQLMonitoringPendingIOs
     {
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.MonitoringDatabase
             $TargetSchema            = "Staging"
@@ -3321,7 +3321,7 @@ FUNCTION Write-SQLMonitoringPendingIOs
             $StartDateTime           = (get-date)
             $TaskName                = "$SQLInstance - $TargetTable"
             $ParentTask              = "$TargetTable"
-            $List                    = Get-SQLServerList -InstanceRole PROD -InstanceType 'ALL' | Select-Object SQLInstance
+            $List                    = Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType 'ALL' | Select-Object SQLInstance
             $LoggingGUID             = New-Guid
             $SQLQuery                = 
             "
@@ -3377,105 +3377,105 @@ FUNCTION Write-SQLMonitoringPendingIOs
             REMOVE-VARIABLE SQLQuery                
     };
 
-    function Email-MorningChecksGetMissingBackups
+    function Send-MorningChecksGetMissingBackups
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_MissingBackups @MorningChecks = 1;"
         $EmailOutput  = $EmailOutput | Sort-Object SQLInstance, LastBackupDtTime, DatabaseName | ConvertTo-HTML -Property SqlInstance, DatabaseName, LastBackupDtTime, LastBackupType -Title "Missing Backups" -PreContent "<h1>Missing Backups</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Missing Backups" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     }        
-function Email-MorningChecksGetMissingCheckDBs
+function Send-MorningChecksGetMissingCheckDBs
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetMissingCheckDBs;"
         $EmailOutput  = $EmailOutput | Sort-Object SQLInstance, LastGoodCheckDbTime, DatabaseName | ConvertTo-HTML -Property SqlInstance, DatabaseName, LastGoodCheckDbTime -Title "Missing CheckDBs" -PreContent "<h1>Missing CheckDBs</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Missing CheckDBs" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     }
-function Email-MorningChecksGetFailedJobs
+function Send-MorningChecksGetFailedJobs
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetFailedJobs @MorningChecks = 1;"
         $EmailOutput  = $EmailOutput | Sort-Object SQLInstance, RunDurationInMins, DatabaseName | ConvertTo-HTML -Property SQLInstance, JobName , StepName, StartDate ,EndDate , RunDurationInMins ,OperatorEmailed ,RetriesAttempted  ,JobMessage -Title "Failed Jobs" -PreContent "<h1>Failed Jobs</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Failed Jobs" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     }    
-function Email-MorningChecksGetSlowJobs
+function Send-MorningChecksGetSlowJobs
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetSlowJobs @MorningChecks = 1;"
         $EmailOutput  = $EmailOutput | Sort-Object PercChange, SQLInstance, RunDuration  | ConvertTo-HTML -Property SQLInstance, JobName, StepName, StartDate, EndDate, RunDuration, NormalRunDuration, PercChange, JobStatus, OperatorEmailed, RetriesAttempted, JobMessage -Title "Slow Jobs" -PreContent "<h1>Slow Jobs</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Slow Jobs" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     }    
-function Email-MorningChecksDatabaseGrowths
+function Send-MorningChecksDatabaseGrowths
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetDBGrowth @MorningChecks = 1;"
         $EmailOutput  = $EmailOutput | Sort-Object SQLInstance, FileSpaceChangeGB -Descending  | ConvertTo-HTML -Property SQLInstance, DatabaseName, TypeDescription, LogicalName, FileState, FileSizeGB, CurrentFileSizeGB, PreviousFileSizeGB, CurrentUsedSpaceGB, PreviousUsedSpaceGB, FileSpaceChangePerc , UsedSpaceChangePerc, FileSpaceChangeGB, UsedSpaceChangeGB -Title "Database Growth" -PreContent "<h1>Database Growth</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Slow Jobs" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     }
-function Email-MorningChecksDiskSpaceDecrease
+function Send-MorningChecksDiskSpaceDecrease
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetStorageSpaceDecrease @MorningChecks = 1;"
         $EmailOutput  = $EmailOutput | Sort-Object SQLInstance,  SpacedUsedChange -Descending  | ConvertTo-HTML -Property ServerName, VolumeLabel, CollectionDateTime, PercSpaceFree, SpaceFreeGB, SpaceUsedGB, PreviousSpaceUsedGB, SpacedUsedChange, TotalDiskSpaceGB, PreviousTotalDiskSpaceGB, TotalDiskSpaceChange -Title "Disk Space Decrease" -PreContent "<h1>Disk Space Decrease</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Disk Space Decrease" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     } 
-    function Email-MorningChecksLowDiskSpace
+    function Send-MorningChecksLowDiskSpace
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetStorageSpaceDecrease @MorningChecks = 1;"
         $EmailOutput  = $EmailOutput | Sort-Object PercSpaceFree -Descending  | ConvertTo-HTML -Property ServerName, VolumeLabel, PercSpaceFree, SpaceFreeGB, SpaceUsedGB, TotalDiskSpaceGB -Title "Low Disk Space" -PreContent "<h1>Low Disk Space</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Low Disk Space" -body $SQLOutput -BodyAsHtml
         Remove-Variable SQLInstances
         Remove-Variable EmailOutput
         Remove-Variable SQLOutput
-		Remove-Variable EmailHeader
+		REMOVE-VARIABLE EmailHeader
     }   
-function Email-MorningChecksGetDeadlocks
+function Send-MorningChecksGetDeadlocks
     {
-        $SQLInstances           = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
-        $EmailHeader            = Get-EmailHeader
+        $SQLInstances           = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $EmailHeader            = Get-SQLMonitoringEmailHeader
         $DeadlockSummary        = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetDeadlockSummary @MorningChecks = 1;"            | Sort-Object SQLInstance,Deadlocks            | ConvertTo-HTML -Property SQLInstance, Deadlocks, TotalDeadlocks                    -Title "Deadlock Summary" -PreContent "<h1>Deadlock Summary</h1>"    
         $DeadlockClientSummary  = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetDeadlockSummaryByClientApp @MorningChecks = 1;" | Sort-Object Deadlocks -Descending            | ConvertTo-HTML -Property SQLInstance,  VictimClientApp, WinnerClientApp, Deadlocks -Title "Deadlock Client Summary" -PreContent "<h1>Deadlock Client Summary</h1>"    
         $DeadlockTableSummary   = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetDeadlockSummaryByTable @MorningChecks = 1;"     | Sort-Object Deadlocks -Descending            | ConvertTo-HTML -Property SQLInstance,  VictimTable, WinnerTable, Deadlocks         -Title "Deadlock Table Summary" -PreContent "<h1>Deadlock Table Summary</h1>"    
@@ -3493,12 +3493,12 @@ function Email-MorningChecksGetDeadlocks
         Remove-Variable DeadlockTableSummary   
         Remove-Variable DeadlockProcSummary    
         Remove-Variable DeadlockOutput 
-		Remove-Variable EmailHeader        
+		REMOVE-VARIABLE EmailHeader        
     }   
-function Email-MorningChecksGetSQLErrorLog
+function Send-MorningChecksGetSQLErrorLog
     {
-        $SQLInstances           = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
-        $EmailHeader            = Get-EmailHeader
+        $SQLInstances           = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $EmailHeader            = Get-SQLMonitoringEmailHeader
         $SQLOutput              = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetSQLLog;"            | Sort-Object SQLInstance, LogDate  
         $ExportOutputPath                 = "C:\MountPoints\Misc\LOGGING\" + 'SQLErrorLog-{0:yyyy-MM-dd}.csv' -f  (Get-Date)
         $SQLOutput | Export-Csv -LiteralPath $ExportOutputPath -NoTypeInformation
@@ -3510,13 +3510,13 @@ function Email-MorningChecksGetSQLErrorLog
 		Remove-Item $ExportOutputPath
         Remove-Variable SQLInstances
         Remove-Variable SQLOutput
-        Remove-Variable EmailHeader
+        REMOVE-VARIABLE EmailHeader
         Remove-Variable ExportOutputPath
     }
-function Email-MorningChecksGetWindowsLog
+function Send-MorningChecksGetWindowsLog
     {
-        $SQLInstances           = Get-SQLServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
-        $EmailHeader            = Get-EmailHeader
+        $SQLInstances           = Get-SQLMonitoringServerList  -InstanceRole "Prod" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $EmailHeader            = Get-SQLMonitoringEmailHeader
         $SQLOutput              = Invoke-DbaQuery -SqlInstance  "Monitor-03\SQLServer1" -Database "DatabaseMonitoring" -Query "EXEC MorningChecks.usp_GetErrorLog;"            | Sort-Object SQLInstance, DateTime  
         $ExportOutputPath                 = "C:\MountPoints\Misc\LOGGING\" + 'WindowsLog-{0:yyyy-MM-dd}.csv' -f  (Get-Date)
         $SQLOutput | Export-Csv -LiteralPath $ExportOutputPath -NoTypeInformation
@@ -3528,15 +3528,15 @@ function Email-MorningChecksGetWindowsLog
 		Remove-Item $ExportOutputPath
         Remove-Variable SQLInstances
         Remove-Variable SQLOutput
-        Remove-Variable EmailHeader
+        REMOVE-VARIABLE EmailHeader
         Remove-Variable ExportOutputPath
     }      
 function Email-WeeklyChecksGetOutOfDatePatches
     {
-        $SQLInstances = Get-SQLServerList  -InstanceRole "ALL" -InstanceType "ALL"   | SELECT-object SqlInstance
+        $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "ALL" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Test-DbaBuild -SqlInstance $SQLInstances.SQLInstance -Latest -Update | Where-Object {$_.Compliant -EQ $false} | Select-Object SQLInstance, SupportedUntil, SPLevel, NameLevel, KBLevel, BuildLevel, BuildTarget, Compliant
         $EmailOutput  = $EmailOutput | Sort-Object SupportedUntil, SQLInstance| ConvertTo-HTML -Property SQLInstance, SupportedUntil, SPLevel, NameLevel, KBLevel, BuildLevel, BuildTarget, Compliant -Title "Instances Missing Patches" -PreContent "<h1>Instances Missing Patches</h1>"    
-        $EmailHeader  = Get-EmailHeader
+        $EmailHeader  = Get-SQLMonitoringEmailHeader
         
         $SQLOutput    =  ConvertTo-HTML -Head $EmailHeader -Body "$EmailOutput " | Out-String #   | Out-GridView    
         Send-MailMessage -To "Krishn.Patel@verastar.co.uk" -From "SQLMorningChecks@verastar.co.uk" -SMTPServer "Mail-01" -Subject "Instances Missing Patches" -body $SQLOutput -BodyAsHtml
@@ -3554,7 +3554,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
             ,[Parameter(Mandatory=$TRUE)]  [ARRAY]   $Results
             ,[Parameter(Mandatory=$TRUE)]  [ARRAY]   $RepeatFrequency
         )
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.MonitoringDatabase
         $ImportGUID              = new-guid
@@ -3576,9 +3576,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
     }
     
     
-    function Alert-SQLMonitoringBlocking
+    function Send-SQLMonitoringBlockingAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.MonitoringDatabase
         $AlertDetails            = Get-SQLMonitoringAlertDetails "LONG TERM BLOCKING"
@@ -3588,8 +3588,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "Long Term Blocking"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'Prod' -InstanceType 'ALL' # | Where-Object {$_.SQLInstance -ne "EICC-DBS"}
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'Prod' -InstanceType 'ALL' # | Where-Object {$_.SQLInstance -ne "EICC-DBS"}
         $Query = 
         "
         
@@ -3810,7 +3810,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object isBlocker, SessionID, Command, ComputerName, InstanceName, SQLInstance, DatabaseName, RequestStarttime, RequestStatus,  BlockingSessionID, SessionBlockedBySPID, WaitType, WaitTime, WaitTimeinMins, LastWaitType, WaitResource, OpenTransactionCount, CPUTime, TotalElapsedTime, Reads, Writes, LogicalReads, HostName, ProgramName, ClientInterfaceName, LoginName, ntDomain, ntUserName,QueryText|  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.RowNum.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
             REMOVE-VARIABLE MonitoringServerDetails 
             REMOVE-VARIABLE MonitoringInstanceName  
@@ -3831,9 +3831,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
     }
     
     
-    function Alert-SQLMonitoringLongRunningQueries
+    function Send-SQLMonitoringLongRunningQueriesAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.MonitoringDatabase
         $MonitoringDBName        = $MonitoringServerDetails.StagingDatabase
@@ -3844,8 +3844,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "Long Running Queries"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'Prod' -InstanceType 'All'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'Prod' -InstanceType 'All'
         $Query                   = "
         SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
         SELECT
@@ -3916,7 +3916,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         
         if ($Results.RowNum.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
         REMOVE-VARIABLE MonitoringServerDetails 
         REMOVE-VARIABLE MonitoringInstanceName  
@@ -3935,10 +3935,10 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE Results              
         REMOVE-VARIABLE SQLOutput             
     }
-    function Alert-SQLMonitoringServicesDown
+    function Send-SQLMonitoringServicesDownAlert
     {
-        Ignore-SSLCertificates
-        $MonitoringServerDetails  = Get-MonitoringServer
+        Disable-SQLMonitoringSSLCertificates
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $TargetDatabase           = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -3950,7 +3950,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                  = $AlertDetails.AlertID
         $SMTPServer               = "MAIL-01"
         $Subject                  = "SERVICES NOT RUNNING"
-        $EmailHeader              = Get-EmailHeader
+        $EmailHeader              = Get-SQLMonitoringEmailHeader
         $SensorList               = Invoke-DbaQuery -SqlInstance $TargetServerInstance -Database $MonitoringServerDatabase -Query "SELECT * FROM  PRTG.Sensors WHERE isServiceSensor = 1 AND isActive = 1;"
         $URL                      = "https://monitor-02/api/table.json?content=channels&columns=datetime,name,lastvalue_&id=&username=patelk1&passhash=2884036294"
         
@@ -3989,7 +3989,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         
         if ($Results.DeviceName.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
         Remove-Variable FinalOutput
     
@@ -4013,10 +4013,10 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE URL                       
     }
     
-    function Alert-SQLMonitoringLowDiskSpace
+    function Send-SQLMonitoringLowDiskSpaceAlert
     {
-        Ignore-SSLCertificates
-        $MonitoringServerDetails  = Get-MonitoringServer
+        Disable-SQLMonitoringSSLCertificates
+        $MonitoringServerDetails  = Get-SQLMonitoringServer
         $TargetServerInstance     = $MonitoringServerDetails.ServerInstance
         $TargetDatabase           = $MonitoringServerDetails.StagingDatabase
         $MonitoringServerDatabase = $MonitoringServerDetails.MonitoringDatabase
@@ -4028,7 +4028,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                  = $AlertDetails.AlertID
         $SMTPServer               = "MAIL-01"
         $Subject                  = "LOW DISK SPACE"
-        $EmailHeader              = Get-EmailHeader
+        $EmailHeader              = Get-SQLMonitoringEmailHeader
         $SensorList               = Invoke-DbaQuery -SqlInstance $TargetServerInstance -Database $MonitoringServerDatabase -Query "SELECT * FROM  PRTG.Sensors WHERE isDiskSpaceSensor = 1 AND isActive = 1 AND DeviceName <> 'MONITOR-03' AND SensorName <> 'DISK FREE: C:\ LABEL: SERIAL NUMBER EE4A3655';"
         $URL                      = "https://monitor-02/api/table.json?content=channels&columns=datetime,name,lastvalue_&id=&username=patelk1&passhash=2884036294"
         
@@ -4078,7 +4078,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         if ($SQLOutput.SensorID.Count -gt 0)
             {
                 $SQLOutput = $SQLOutput| Select-Object  SensorID,DeviceName, SensorName, @{Name ="UsedSpaceMB"; Expression={('{0:N0}' -f $_.UsedSpaceMB)}}, @{Name ="FreeSpaceMB"; Expression={('{0:N0}' -f $_.FreeSpaceMB)}}, @{Name ="TotalSpaceMB"; Expression={('{0:N0}' -f $_.TotalSpaceMB)}}, UsedSpaceGB, FreeSpaceGB, TotalSpaceGB, FreeSpacePerc  |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
                 Remove-Variable SQLOutput
             }
                     
@@ -4106,9 +4106,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE URL
         REMOVE-VARIABLE FinalOutput    
     }
-    FUNCTION Alert-SQLMonitoringLongRunningJobs
+    FUNCTION Send-SQLMonitoringLongRunningJobsAlert
     {
-            $MonitoringServerDetails = Get-MonitoringServer
+            $MonitoringServerDetails = Get-SQLMonitoringServer
             $TargetServerInstance    = $MonitoringServerDetails.ServerInstance
             $TargetDatabase          = $MonitoringServerDetails.StagingDatabase
             $TargetSchema            = "Staging"
@@ -4116,7 +4116,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
             $StartDateTime           = (get-date)
             $TaskName                = "$SQLInstance - $TargetTable"
             $ParentTask              = "$TargetTable"
-            $List                    = Get-SQLServerList -InstanceRole PROD -InstanceType 'BUSINESS CRITICAL' | Select-Object SQLInstance
+            $List                    = Get-SQLMonitoringServerList -InstanceRole PROD -InstanceType 'BUSINESS CRITICAL' | Select-Object SQLInstance
             $AlertName               = "LONG RUNNING JOBS"
             $AlertDetails            = Get-SQLMonitoringAlertDetails $AlertName
             $ToEmailAddress          = $AlertDetails.ToEmailAddress      
@@ -4125,7 +4125,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
             $AlertID                 = $AlertDetails.AlertID
             $SMTPServer              = "MAIL-01"
             $Subject                 = "LONG RUNNING JOBS"
-            $EmailHeader             = Get-EmailHeader
+            $EmailHeader             = Get-SQLMonitoringEmailHeader
             $InsertSQLQuery          = 
             "
                 SELECT
@@ -4319,7 +4319,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
             
             if ($Results.SensorID.Count -gt 0)
                 {
-                    Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                    Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
                 }
             REMOVE-VARIABLE MonitoringServerDetails 
             REMOVE-VARIABLE TargetServerInstance    
@@ -4345,9 +4345,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
             REMOVE-VARIABLE Results                              
             REMOVE-VARIABLE SQLOutput
     }
-    FUNCTION Alert-SQLMonitoringGetFailedJobs
+    FUNCTION Send-SQLMonitoringGetFailedJobsAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $AlertName               = "FAILED JOBS" 
@@ -4359,8 +4359,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "FAILED JOBS"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'ALL' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'ALL' -InstanceType 'ALL'
         $Query                   = 
                     "
                     SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -4396,7 +4396,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object SQLInstance, StartDateTime , EndDateTime, RunDurationSeconds, RunDurationMins, JobName, StepName, JobMessage, HashedEmailSubmission  |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.SQLInstance.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
     
             REMOVE-VARIABLE MonitoringServerDetails 
@@ -4418,9 +4418,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
             REMOVE-VARIABLE SQLOutput                           
     }
     
-    function Alert-SQLMonitoringDeadlocks
+    function Send-SQLMonitoringDeadlocksAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         
@@ -4433,8 +4433,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "DEADLOCKS"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'Prod' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'Prod' -InstanceType 'ALL'
         $Query                   = "
                 USE DatabaseMonitoring;
                 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -4485,7 +4485,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object ComputerName,InstanceName,SQLInstance,BatchCompletedVictim,BatchCompletedWinner,SpidVictim,SpidWinner,LoginVictim,LoginWinner,ClientAppVictim,ClientAppWinner,hostnameVictim,hostnameWinner,VictimDatabaseName,WinnerDatabaseName,TransactionIDVictim,TransactionIDWinner,ProcNameVictim,ProcNameWinner,WaitResoureVictim,WaitResoureWinner,TableNameVictim,TableNameWinner,ResourceVictim,ResourceWinner,IndexNameVictim,IndexNameWinner -Unique |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.ComputerName.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
                 $Results | select-object HashedEmailSubmission| Write-DbaDbTableData -SqlInstance $MonitoringInstanceName -Database "Staging"  -schema "Staging" -Table "DeadlockEmails" -FireTriggers
             }
     
@@ -4508,11 +4508,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE SQLOutput                         
     }
     
-    
-    
-    FUNCTION Alert-SQLMonitoringGetSleepingTransactions
+FUNCTION Send-SQLMonitoringGetSleepingTransactionsAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -4524,8 +4522,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "SLEEPING TRANSACTIONS"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'PROD' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'PROD' -InstanceType 'ALL'
         $Query                   = "
                     SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
                     SET NOCOUNT ON;
@@ -4575,7 +4573,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object SQLInstance, SessionID, LoginTime, LastRequestStartTime, LastRequestEndTime, TimeSleeping, RequestStatus, Reads, Writes, LogicalReads, HostName, ProgramName, ClientInterfaceName, DatabaseName, LoginName, CpuTime, MemoryUsage, TotalScheduledTime, Total_elapsedTime, OpenTransactionCount, HashedEmailSubmission  |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.SQLInstance.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
     
         REMOVE-VARIABLE MonitoringServerDetails 
@@ -4596,9 +4594,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE Results
         REMOVE-VARIABLE SQLOutput                           
     }
-    FUNCTION Alert-SQLMonitoringGetLowLogSpace
+FUNCTION Send-SQLMonitoringGetLowLogSpaceAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -4610,8 +4608,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "LOW LOG SPACE"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'PROD' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'PROD' -InstanceType 'ALL'
         $Query                   = 
             "
                     DECLARE @SQL	 NVARCHAR(MAX)=N'';
@@ -4657,7 +4655,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object SQLInstance, DatabaseName, LogName,TotalVolumeSpace,AvailableVolumeSpace, LogSizeGB, LogSpaceUsedGB, LogSpaceUsedPerc|  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.SQLInstance.Count -gt 0)                                   
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
     
         REMOVE-VARIABLE MonitoringServerDetails
@@ -4678,9 +4676,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE Results
         REMOVE-VARIABLE SQLOutput        
     }
-    FUNCTION Alert-SQLMonitoringGetLowDatabaseFileSpace
+FUNCTION Send-SQLMonitoringGetLowDatabaseFileSpaceAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -4692,8 +4690,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "LOW DATABASE FILE SPACE"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'PROD' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'PROD' -InstanceType 'ALL'
         $Query                   = 
             "
                     SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -4772,7 +4770,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object SqlInstance ,DBName ,FileName ,Filegroup ,PhysicalName ,UsedSpaceMB ,FreeSpaceMB ,FileSizeMB ,PercentUsed ,GrowthMB ,GrowthType ,TotalVolumeSpace ,AvailableVolumeSpace ,HashedEmailSubmission |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.SQLInstance.Count -gt 0)                                   
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
     
         REMOVE-VARIABLE MonitoringServerDetails
@@ -4793,9 +4791,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE Results
         REMOVE-VARIABLE SQLOutput        
     }
-    FUNCTION Alert-SQLMonitoringGetExceedingCounters
+FUNCTION Send-SQLMonitoringGetExceedingCountersAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -4807,8 +4805,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "EXCEEDING PERFMON COUNTERS"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'ALL' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'ALL' -InstanceType 'ALL'
         $Query                   = "EXEC Reporting.usp_GetExceedingPerformanceCounter;"
         $Results                 = Invoke-DbaQuery -SqlInstance $MonitoringInstanceName -Database $MonitoringDBName -Query $Query 
         if ($Results.CollectionDateTime.Count -gt 0)
@@ -4818,7 +4816,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object CollectionDateTime , DeviceName , SensorName , ChannelName , CounterValue , TargetPredicate , @{Name ="1 Day Away"; Expression={($_.1)}} , @{Name ="7 Days Away"; Expression={($_.7)}} , @{Name ="14 Days Away"; Expression={($_.14)}}, @{Name ="28 Days Away"; Expression={($_.28)}}, @{Name ="30 Days Away"; Expression={($_.30)}}, TargetValue, HashedEmailSubmission |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.CollectionDateTime.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
         REMOVE-VARIABLE MonitoringServerDetails 
         REMOVE-VARIABLE MonitoringInstanceName  
@@ -4838,9 +4836,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE Results
         REMOVE-VARIABLE SQLOutput                 
     }
-    FUNCTION Alert-SQLMonitoringGetFileUsageChange
+FUNCTION Send-SQLMonitoringGetFileUsageChangeAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -4853,8 +4851,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "FILE SPACE USED"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'ALL' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'ALL' -InstanceType 'ALL'
         $Query                   = "EXEC Reporting.usp_Get_FileSpaceChange;"
         $Results                 = Invoke-DbaQuery -SqlInstance $MonitoringInstanceName -Database $MonitoringDBName -Query $Query 
         if ($Results.SqlInstance.Count -gt 0)
@@ -4864,7 +4862,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object SqlInstance, DatabaseName, FileGroupName, TypeDescription, LogicalName, PhysicalName, FileSizeGB, UsedSpaceGB, AvailableSpaceGB, VolumeFreeSpaceGB, PreviousFileSizeGB, PreviousUsedSpaceGB, PreviousAvailableSpaceGB, PreviousVolumeFreeSpaceGB, FileSizeChange, UsedSizeChange, FileSizeChangePerc, UsedSizeChangePerc       |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.SqlInstance.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
     
         REMOVE-VARIABLE MonitoringServerDetails 
@@ -4885,9 +4883,9 @@ function Email-WeeklyChecksGetOutOfDatePatches
         REMOVE-VARIABLE Results
         REMOVE-VARIABLE SQLOutput                         
     }
-    FUNCTION Alert-SQLMonitoringGetExceedingWaits
+FUNCTION Send-SQLMonitoringGetExceedingWaitsAlert
     {
-        $MonitoringServerDetails = Get-MonitoringServer
+        $MonitoringServerDetails = Get-SQLMonitoringServer
         $MonitoringInstanceName  = $MonitoringServerDetails.ServerInstance
         $MonitoringDatabaseName  = $MonitoringServerDetails.StagingDatabase
         $MonitoringDBName        = $MonitoringServerDetails.MonitoringDBName
@@ -4900,8 +4898,8 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $AlertID                 = $AlertDetails.AlertID
         $SMTPServer              = "MAIL-01"
         $Subject                 = "EXCEEDING WAITS"
-        $EmailHeader             = Get-EmailHeader
-        $SQLList                 = Get-SQLServerList -InstanceRole 'ALL' -InstanceType 'ALL'
+        $EmailHeader             = Get-SQLMonitoringEmailHeader
+        $SQLList                 = Get-SQLMonitoringServerList -InstanceRole 'ALL' -InstanceType 'ALL'
         $Query                   = "EXEC Reporting.usp_GetExceedingWaits;"
         $Results                 = Invoke-DbaQuery -SqlInstance $MonitoringInstanceName -Database $MonitoringDBName -Query $Query 
         if ($Results.SQLInstance.Count -gt 0)
@@ -4911,7 +4909,7 @@ function Email-WeeklyChecksGetOutOfDatePatches
         $SQLOutput = $Results| Select-Object SQLInstance , WaitType , Category , CurrentValue , @{Name ="1 Day Away"; Expression={($_.1)}} , @{Name ="7 Days Away"; Expression={($_.7)}} , @{Name ="14 Days Away"; Expression={($_.14)}}, @{Name ="28 Days Away"; Expression={($_.28)}}, @{Name ="30 Days Away"; Expression={($_.30)}}, HashedEmailSubmission |  ConvertTo-HTML -Head $EmailHeader | Out-String #   | Out-GridView    
         if ($Results.SQLInstance.Count -gt 0)
             {
-                Email-SQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
+                Send-SQLMonitoringSQLOutput -ToEmailAddress $ToEmailAddress -FromEmailAddress $FromEmailAddress -SMTPServer $SMTPServer -Subject $Subject -SQLOutput $SQLOutput
             }
             
         REMOVE-VARIABLE MonitoringServerDetails 
