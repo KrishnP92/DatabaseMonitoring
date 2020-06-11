@@ -3531,7 +3531,7 @@ function Send-MorningChecksGetWindowsLog
         REMOVE-VARIABLE EmailHeader
         Remove-Variable ExportOutputPath
     }      
-function Email-WeeklyChecksGetOutOfDatePatches
+function Send-WeeklyChecksGetOutOfDatePatches
     {
         $SQLInstances = Get-SQLMonitoringServerList  -InstanceRole "ALL" -InstanceType "ALL"   | SELECT-object SqlInstance
         $EmailOutput  = Test-DbaBuild -SqlInstance $SQLInstances.SQLInstance -Latest -Update | Where-Object {$_.Compliant -EQ $false} | Select-Object SQLInstance, SupportedUntil, SPLevel, NameLevel, KBLevel, BuildLevel, BuildTarget, Compliant
@@ -4931,4 +4931,17 @@ FUNCTION Send-SQLMonitoringGetExceedingWaitsAlert
         REMOVE-VARIABLE Results                         
         REMOVE-VARIABLE SQLOutput
     }
-        
+Send-MorningChecks
+    {
+        Send-MorningChecksDatabaseGrowths         
+        Send-MorningChecksDiskSpaceDecrease       
+        Send-MorningChecksGetDeadlocks            
+        Send-MorningChecksGetFailedJobs           
+        Send-MorningChecksGetMissingBackups       
+        Send-MorningChecksGetMissingCheckDBs      
+        Send-MorningChecksGetSlowJobs             
+        Send-MorningChecksGetSQLErrorLog          
+        Send-MorningChecksGetWindowsLog           
+        Send-MorningChecksLowDiskSpace            
+
+    }        
